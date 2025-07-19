@@ -1,0 +1,30 @@
+{
+  "monitoring_summary": {
+    "start_time": "2025-07-18T17:06:38.356353",
+    "end_time": "2025-07-18T17:17:54.390321",
+    "duration_minutes": 6.58,
+    "total_data_points": 79,
+    "monitoring_interval_seconds": 5
+  },
+  "cpu_statistics": {
+    "avg_usage_percent": 54.62,
+    "max_usage_percent": 88.6,
+    "min_usage_percent": 24.8
+  },
+  "memory_statistics": {
+    "avg_usage_percent": 86.33,
+    "max_usage_percent": 93.7,
+    "min_usage_percent": 63.8
+  },
+  "gpu_statistics": {
+    "available": true,
+    "avg_utilization_percent": 37.01,
+    "max_utilization_percent": 100.0,
+    "min_utilization_percent": 3.72
+  },
+  "peak_resources": {
+    "peak_cpu_time": "2025-07-18T17:15:22.746604",
+    "peak_memory_time": "2025-07-18T17:07:08.496274",
+    "peak_gpu_time": "2025-07-18T17:09:14.574454"
+  }
+}

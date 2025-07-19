@@ -1,0 +1,51 @@
+# 基础依赖 - Python 3.13兼容版本
+torch>=2.0.0,<2.8.0
+torchvision>=0.15.0,<0.23.0
+transformers>=4.30.0,<4.55.0
+accelerate>=0.20.0,<0.35.0
+peft>=0.4.0,<0.15.0
+datasets>=2.12.0,<3.0.0
+
+# 模型相关
+sentencepiece>=0.1.99,<0.3.0
+protobuf>=3.20.0,<5.0.0
+numpy>=1.21.0,<2.0.0
+scipy>=1.7.0,<2.0.0
+scikit-learn>=1.0.0,<2.0.0
+
+# 数据处理
+pandas>=1.3.0,<3.0.0
+openpyxl>=3.0.9,<4.0.0
+requests>=2.25.0,<3.0.0
+tqdm>=4.62.0,<5.0.0
+jieba>=0.42.1,<1.0.0
+
+# 配置和日志
+pyyaml>=6.0,<7.0
+loguru>=0.6.0,<1.0.0
+# wandb>=0.15.0,<0.18.0  # 暂时注释，可能有兼容性问题
+tensorboard>=2.10.0,<3.0.0
+
+# Web应用
+streamlit>=1.25.0,<2.0.0
+fastapi>=0.100.0,<1.0.0
+uvicorn>=0.22.0,<1.0.0
+gradio>=3.35.0,<5.0.0
+
+# API和网络
+httpx>=0.24.0,<1.0.0
+aiohttp>=3.8.0,<4.0.0
+websockets>=11.0,<13.0
+
+# 工具库
+click>=8.0.0,<9.0.0
+rich>=13.0.0,<14.0.0
+psutil>=5.9.0,<6.0.0
+huggingface-hub>=0.15.0,<1.0.0
+
+# Ollama客户端
+ollama>=0.1.0,<1.0.0
+
+# 可选GPU支持 (根据系统选择)
+# torch-audio  # 如果需要音频处理
+# xformers     # 如果需要内存优化

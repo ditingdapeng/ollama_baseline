@@ -1,0 +1,20 @@
+2025-07-18 17:06:38 | INFO     | __main__:__init__:66 - 统一训练监控器初始化完成，监控间隔: 5秒
+2025-07-18 17:06:38 | INFO     | __main__:start_monitoring:319 - 🚀 开始同步训练监控...
+2025-07-18 17:06:38 | INFO     | __main__:start_monitoring:320 - 💡 提示: 按 Ctrl+C 停止监控
+2025-07-18 17:06:38 | INFO     | __main__:start_monitoring:325 - ✅ 找到 2 个训练进程
+2025-07-18 17:17:54 | INFO     | __main__:_signal_handler:307 - 
+🛑 接收到停止信号 (2)，正在停止监控...
+2025-07-18 17:17:54 | INFO     | __main__:stop_monitoring:397 - 🛑 正在停止监控...
+2025-07-18 17:17:54 | INFO     | __main__:stop_monitoring:403 - 📊 生成监控报告...
+2025-07-18 17:17:54 | INFO     | __main__:generate_report:467 - 监控报告已保存到: /Users/dapeng/Code/study/ollamaALL/ollama_文档/training/logs/training_resource_report.json
+2025-07-18 17:17:54 | INFO     | __main__:stop_monitoring:406 - ✅ 监控报告生成完成
+2025-07-18 17:17:54 | INFO     | __main__:_display_summary:474 - 📈 监控摘要:
+2025-07-18 17:17:54 | INFO     | __main__:_display_summary:475 -    - 监控时长: 6.6 分钟
+2025-07-18 17:17:54 | INFO     | __main__:_display_summary:476 -    - 平均CPU使用率: 54.6%
+2025-07-18 17:17:54 | INFO     | __main__:_display_summary:477 -    - 峰值CPU使用率: 88.6%
+2025-07-18 17:17:54 | INFO     | __main__:_display_summary:478 -    - 平均内存使用率: 86.3%
+2025-07-18 17:17:54 | INFO     | __main__:_display_summary:479 -    - 峰值内存使用率: 93.7%
+2025-07-18 17:17:54 | INFO     | __main__:_display_summary:481 -    - GPU可用: 是
+2025-07-18 17:17:54 | INFO     | __main__:_display_summary:483 -    - 平均GPU利用率: 37.0%
+2025-07-18 17:17:54 | INFO     | __main__:_display_summary:484 -    - 峰值GPU利用率: 100.0%
+2025-07-18 17:17:54 | INFO     | __main__:stop_monitoring:409 - ✅ 监控已停止

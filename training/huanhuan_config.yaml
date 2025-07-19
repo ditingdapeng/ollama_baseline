@@ -1,0 +1,248 @@
+# 甄嬛角色模型训练配置
+# 基于 huanhuan-chat 项目: https://github.com/KMnO4-zx/huanhuan-chat
+
+# 模型配置
+model:
+  base_model: "Qwen/Qwen2.5-0.5B"  # 基础模型  
+  model_name: "huanhuan-chat"  # 模型名称
+  max_length: 2048  # 最大序列长度（Qwen2.5支持更长序列）
+  trust_remote_code: true
+
+# 训练参数
+training:
+  output_dir: "../training/models/huanhuan"  # 模型输出目录
+  num_train_epochs: 3  # 训练轮数
+  per_device_train_batch_size: 2  # 训练批次大小（Qwen2.5-0.5B需要更多内存）
+  per_device_eval_batch_size: 2  # 评估批次大小
+  gradient_accumulation_steps: 8  # 梯度累积步数（增加以补偿小批次）
+  learning_rate: 2e-4  # 学习率（Qwen模型推荐较小学习率）
+  weight_decay: 0.01  # 权重衰减
+  warmup_ratio: 0.1  # 预热比例
+  max_grad_norm: 1.0  # 梯度裁剪
+  
+  # 保存和评估
+  save_steps: 500  # 保存间隔
+  eval_steps: 500  # 评估间隔
+  logging_steps: 50  # 日志间隔
+  save_total_limit: 3  # 最多保存模型数
+  
+  # 早停
+  early_stopping_patience: 3
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
+
+# LoRA配置
+lora:
+  use_lora: true  # 是否使用LoRA
+  lora_rank: 8  # LoRA秩
+  lora_alpha: 32  # LoRA alpha参数
+  lora_dropout: 0.1  # LoRA dropout
+  target_modules:  # Qwen2.5模型的目标模块
+    - "q_proj"
+    - "k_proj"
+    - "v_proj"
+    - "o_proj"
+    - "gate_proj"
+    - "up_proj"
+    - "down_proj"
+  bias: "none"  # 偏置设置
+
+# 数据配置
+data:
+  train_file: "../data/processed/train.jsonl"  # 训练数据
+  validation_file: "../data/processed/train.jsonl"  # 验证数据
+  test_file: "../data/processed/train.jsonl"  # 测试数据
+  
+  # 数据分割比例
+  train_split: 0.8
+  validation_split: 0.1
+  test_split: 0.1
+  
+  # 数据处理
+  max_source_length: 256  # 输入最大长度
+  max_target_length: 256  # 输出最大长度
+  ignore_pad_token_for_loss: true
+
+# 生成参数
+generation:
+  max_new_tokens: 256  # 最大生成长度
+  temperature: 0.7  # 温度参数
+  top_p: 0.9  # top-p采样
+  top_k: 50  # top-k采样
+  do_sample: true  # 是否采样
+  repetition_penalty: 1.1  # 重复惩罚
+  length_penalty: 1.0  # 长度惩罚
+  num_beams: 1  # beam search数量
+
+# 角色特定配置
+character:
+  name: "甄嬛"  # 角色名称
+  aliases:  # 别名
+    - "嬛嬛"
+    - "甄小主"
+    - "熹妃"
+    - "熹贵妃"
+  
+  personality:  # 性格特征
+    - "聪慧机智"
+    - "温婉贤淑"
+    - "坚韧不拔"
+    - "重情重义"
+    - "知书达理"
+  
+  language_style:  # 语言风格
+    - "古典雅致"
+    - "谦逊有礼"
+    - "情感丰富"
+    - "用词考究"
+  
+  background: |
+    甄嬛，大理寺少卿甄远道之女，因容貌酷似纯元皇后而被选中入宫。
+    性情温和，知书达理，擅长诗词歌赋。在宫廷斗争中逐渐成长，
+    最终成为深受皇帝宠爱的熹贵妃。
+
+# 系统配置
+system:
+  device: "auto"  # 设备选择: auto, cuda, mps, cpu
+  mixed_precision: "no"  # 混合精度: fp16, bf16, no (MPS不支持fp16)
+  dataloader_num_workers: 4  # 数据加载器工作进程数
+  seed: 42  # 随机种子
+  
+  # 内存优化
+  gradient_checkpointing: true  # 梯度检查点
+  dataloader_pin_memory: true  # 固定内存
+  remove_unused_columns: false  # 移除未使用列
+
+# 日志配置
+logging:
+  log_level: "INFO"  # 日志级别
+  log_file: "../training/logs/huanhuan_train.log"  # 日志文件
+  report_to: []  # 报告到: ["wandb", "tensorboard"]
+  
+  # Weights & Biases配置（可选）
+  wandb:
+    project: "huanhuan-chat"
+    name: "huanhuan-lora-training"
+    tags: ["lora", "chatglm2", "character"]
+
+# 评估配置
+evaluation:
+  eval_strategy: "steps"  # 评估策略
+  eval_steps: 500  # 评估步数
+  per_device_eval_batch_size: 4  # 评估批次大小
+  
+  # 评估指标
+  metrics:
+    - "loss"
+    - "perplexity"
+    - "bleu"  # 可选
+
+# 保存配置
+saving:
+  save_strategy: "steps"  # 保存策略
+  save_steps: 500  # 保存步数
+  save_total_limit: 3  # 最大保存数量
+  load_best_model_at_end: true  # 加载最佳模型
+
+# 特殊功能
+special_features:
+  # 角色一致性检查
+  character_consistency_check: true
+  consistency_keywords:
+    - "臣妾"
+    - "皇上"
+    - "娘娘"
+    - "便是"
+    - "倒是"
+  
+  # 生成质量过滤
+  quality_filter:
+    min_length: 10  # 最小长度
+    max_repetition_ratio: 0.3  # 最大重复比例
+    forbidden_words: []  # 禁用词
+
+# 数据增强
+data_augmentation:
+  enable: true  # 是否启用
+  
+  # 同义词替换
+  synonym_replacement:
+    enable: true
+    ratio: 0.1  # 替换比例
+  
+  # 语序调整
+  word_order_change:
+    enable: false
+    ratio: 0.05
+  
+  # 语气词添加
+  tone_word_insertion:
+    enable: true
+    words: ["呢", "啊", "呀", "吧"]
+    ratio: 0.1
+
+# 后处理
+post_processing:
+  # 文本清理
+  text_cleaning:
+    remove_extra_spaces: true
+    remove_special_chars: false
+    normalize_punctuation: true
+  
+  # 格式化
+  formatting:
+    add_special_tokens: true
+    max_length_truncation: true
+
+# 部署配置
+deployment:
+  # Ollama配置
+  ollama:
+    model_name: "huanhuan-chat"
+    base_model: "qwen2.5:3b"  # Ollama基础模型（与训练模型一致）
+    
+    # 模型参数
+    parameters:
+      temperature: 0.7
+      top_p: 0.9
+      top_k: 40
+      repeat_penalty: 1.1
+      num_ctx: 2048
+    
+    # 系统提示
+    system_prompt: |
+      你是甄嬛，《甄嬛传》中的女主角。你是大理寺少卿甄远道之女，
+      因选秀入宫，后成为熹贵妃。你聪慧机智，温婉贤淑，知书达理，
+      擅长诗词歌赋。请用甄嬛的语气和风格来回答问题，
+      语言要古典雅致，谦逊有礼，体现出宫廷女子的教养和智慧。
+      
+      回答时请注意：
+      1. 使用"臣妾"自称
+      2. 语言要典雅，多用"便是"、"倒是"、"只是"等古典用词
+      3. 体现出温婉贤淑的性格特点
+      4. 可以适当提及宫廷生活和诗词文化
+      5. 保持角色的一致性和真实性
+    
+    # 对话模板
+    template: |
+      {{ if .System }}<|im_start|>system
+      {{ .System }}<|im_end|>
+      {{ end }}{{ if .Prompt }}<|im_start|>user
+      {{ .Prompt }}<|im_end|>
+      <|im_start|>assistant
+      {{ end }}{{ .Response }}<|im_end|>
+
+# 实验配置
+experiment:
+  name: "huanhuan-chat-v1"
+  description: "基于甄嬛传数据的角色对话模型训练"
+  tags: ["character", "chinese", "lora", "chatglm2"]
+  
+  # 超参数搜索（可选）
+  hyperparameter_search:
+    enable: false
+    method: "grid"  # grid, random, bayesian
+    parameters:
+      learning_rate: [1e-4, 5e-4, 1e-3]
+      lora_rank: [4, 8, 16]
+      lora_alpha: [16, 32, 64]

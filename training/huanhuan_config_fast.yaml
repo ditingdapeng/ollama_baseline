@@ -1,0 +1,203 @@
+# 甄嬛传快速训练配置文件
+# 适用于小数据集的快速训练和测试
+# 基于原始配置优化，减少训练时间
+
+# 训练参数 - 针对小数据集优化
+training:
+  output_dir: "../training/models/huanhuan_fast"  # 快速训练模型输出目录
+  num_train_epochs: 1                         # 进一步减少训练轮数
+  per_device_train_batch_size: 1              # 最小batch size
+  per_device_eval_batch_size: 1
+  gradient_accumulation_steps: 2              # 减少梯度累积步数适应极小数据集
+  learning_rate: 1e-3                         # 提高学习率（原来是5e-4）
+  weight_decay: 0.01
+  warmup_ratio: 0.05                          # 进一步减少预热比例
+  lr_scheduler_type: "cosine"
+  logging_steps: 10                           # 更频繁的日志记录
+  eval_steps: 50                              # 更频繁的评估
+  save_steps: 100                             # 更频繁的保存
+  evaluation_strategy: "steps"
+  save_strategy: "steps"
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+  greater_is_better: false
+  save_total_limit: 1                         # 只保留最近1个检查点
+  dataloader_num_workers: 0                   # 禁用多线程数据加载
+  remove_unused_columns: false
+  report_to: []
+  max_grad_norm: 1.0
+  fp16: false                                  # MPS不支持fp16，禁用半精度训练启用fp16节省内存
+  dataloader_pin_memory: false
+  gradient_checkpointing: true                # 启用梯度检查点节省内存
+
+# LoRA参数 - 极致优化
+lora:
+  r: 2                                        # 最小rank
+  lora_alpha: 4
+  target_modules: ["q_proj"]                 # 只训练一个模块
+  lora_dropout: 0.1
+  bias: "none"
+  task_type: "CAUSAL_LM"
+  fan_in_fan_out: false
+
+# 数据配置
+data:
+  train_file: "../data/processed/train.jsonl"
+  validation_file: "../data/processed/validation.jsonl"
+  test_file: "../data/processed/test.jsonl"
+  max_seq_length: 128                         # 极小序列长度以节省内存
+  preprocessing_num_workers: 0                # 禁用多线程预处理
+
+# 生成参数 - 快速生成
+generation:
+  max_new_tokens: 256                         # 减少生成长度（原来是512）
+  do_sample: true
+  temperature: 0.8                            # 稍微降低温度
+  top_p: 0.9
+  top_k: 50
+  repetition_penalty: 1.1
+  pad_token_id: 50256
+  eos_token_id: 50256
+
+# 角色设定
+character:
+  name: "甄嬛"
+  description: "《甄嬛传》中的女主角，聪慧善良，经历宫廷斗争后成长为坚强的女性"
+  personality: ["聪明", "善良", "坚强", "优雅", "有智慧"]
+  speaking_style: "温婉而不失坚定，用词典雅，体现古代女性的教养和智慧"
+  background: "大理寺少卿甄远道之女，因选秀入宫，后成为熹贵妃"
+
+# 系统配置
+system:
+  device: "auto"                              # 使用MPS设备
+  seed: 42
+  use_fast_tokenizer: true
+  trust_remote_code: false
+
+# 日志配置
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "./logs/huanhuan_fast_training.log"
+
+# 评估配置 - 简化评估
+evaluation:
+  eval_dataset_size: 100                      # 限制评估数据集大小
+  eval_batch_size: 4
+  eval_accumulation_steps: 1
+  prediction_loss_only: false
+  eval_delay: 0
+  eval_steps: 50
+  include_inputs_for_metrics: false
+
+# 保存配置
+save:
+  save_safetensors: true
+  save_on_each_node: false
+  output_dir: "../training/models/huanhuan_fast"
+  hub_model_id: null
+  hub_strategy: "every_save"
+  hub_token: null
+  push_to_hub: false
+
+# 特殊功能
+special:
+  early_stopping_patience: 3                 # 早停耐心值
+  early_stopping_threshold: 0.001
+  auto_find_batch_size: false
+  ddp_find_unused_parameters: false
+  ddp_bucket_cap_mb: 25
+  ddp_broadcast_buffers: false
+
+# 数据增强 - 简化
+data_augmentation:
+  enabled: false                              # 禁用数据增强以加快训练
+  techniques: []
+  augmentation_ratio: 0.0
+
+# 后处理
+post_processing:
+  remove_special_tokens: true
+  clean_up_tokenization_spaces: true
+  skip_special_tokens: true
+
+# 部署配置
+deployment:
+  model_name: "huanhuan_fast"
+  model_version: "v1.0"
+  api_port: 8000
+  max_concurrent_requests: 10
+  timeout: 30
+  enable_streaming: true
+
+# 快速训练专用配置
+fast_training:
+  enabled: true
+  target_samples: 500                         # 目标样本数
+  quick_eval: true                            # 快速评估模式
+  reduced_logging: false                      # 保持详细日志
+  skip_validation: false                      # 不跳过验证
+  memory_efficient: true                      # 内存高效模式
+
+# 模型配置
+model:
+  base_model: "Qwen/Qwen2.5-0.5B"             # 0.5B小型模型
+  model_name_or_path: "Qwen/Qwen2.5-0.5B"
+  cache_dir: null
+  model_revision: "main"
+  use_auth_token: false
+  torch_dtype: "auto"                         # 自动选择数据类型
+  low_cpu_mem_usage: true                     # 低CPU内存使用
+  device_map: "auto"                          # 自动设备映射
+
+# 分词器配置
+tokenizer:
+  tokenizer_name_or_path: "Qwen/Qwen2.5-0.5B"
+  cache_dir: null
+  use_fast: true
+  revision: "main"
+  use_auth_token: false
+  padding_side: "left"
+  truncation_side: "left"
+  add_eos_token: true
+  add_bos_token: false
+
+# 优化器配置
+optimizer:
+  optimizer_type: "adamw_torch"               # 使用PyTorch的AdamW
+  adam_beta1: 0.9
+  adam_beta2: 0.999
+  adam_epsilon: 1e-8
+  max_grad_norm: 1.0
+
+# 调度器配置
+scheduler:
+  lr_scheduler_type: "cosine"
+  warmup_ratio: 0.1
+  warmup_steps: 0
+  num_cycles: 0.5
+
+# 内存优化 - 极致节省
+memory:
+  gradient_checkpointing: true
+  fp16: false
+  bf16: false
+  tf32: false
+  dataloader_pin_memory: false
+  dataloader_persistent_workers: false
+  max_memory_mb: 4096                         # 进一步限制内存使用
+
+# 调试配置
+debug:
+  debug_mode: false
+  log_level: "INFO"
+  profile_memory: false
+  profile_time: false
+  save_intermediate_results: false
+
+# 实验配置
+experiment:
+  experiment_name: "huanhuan_fast_training"
+  run_name: "fast_run_001"
+  tags: ["fast", "subset", "test"]
+  notes: "快速训练配置，使用数据子集进行快速测试和验证"

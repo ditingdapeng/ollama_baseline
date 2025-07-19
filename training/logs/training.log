@@ -1,0 +1,24 @@
+2025-07-18 17:06:39.590 | INFO     | __main__:__init__:146 - HuanHuanTrainer 初始化完成，配置文件: ./huanhuan_config_fast.yaml
+2025-07-18 17:06:39.596 | INFO     | __main__:load_config:165 - 配置文件加载成功: ./huanhuan_config_fast.yaml
+2025-07-18 17:06:39.605 | INFO     | __main__:setup_device:182 - 使用Apple Silicon MPS设备
+2025-07-18 17:06:39.605 | INFO     | __main__:load_model_and_tokenizer:196 - 加载分词器: Qwen/Qwen2.5-0.5B
+2025-07-18 17:06:41.134 | INFO     | __main__:load_model_and_tokenizer:207 - 加载模型: Qwen/Qwen2.5-0.5B
+2025-07-18 17:06:47.518 | INFO     | __main__:load_model_and_tokenizer:217 - 模型已移动到设备: mps
+2025-07-18 17:06:47.519 | INFO     | __main__:load_model_and_tokenizer:219 - 模型参数量: 494,032,768
+2025-07-18 17:06:47.519 | INFO     | __main__:setup_lora:230 - 配置LoRA参数
+2025-07-18 17:06:47.549 | INFO     | __main__:setup_lora:246 - 可训练参数: 86,016 (0.02%)
+2025-07-18 17:06:47.549 | INFO     | __main__:setup_lora:247 - 总参数量: 494,118,784
+2025-07-18 17:06:47.549 | INFO     | __main__:setup_training_arguments:301 - 检测到MPS设备，使用MPS优化配置
+2025-07-18 17:06:47.550 | INFO     | __main__:prepare_datasets:260 - 加载训练数据: ../data/processed/train.jsonl
+2025-07-18 17:06:47.551 | INFO     | __main__:load_conversations:76 - 加载了 40 条对话数据
+2025-07-18 17:06:47.554 | INFO     | __main__:prepare_datasets:280 - 训练集: 32 样本
+2025-07-18 17:06:47.554 | INFO     | __main__:prepare_datasets:281 - 验证集: 4 样本
+2025-07-18 17:06:47.554 | INFO     | __main__:prepare_datasets:282 - 测试集: 4 样本
+2025-07-18 17:06:47.570 | INFO     | __main__:setup_training_arguments:374 - 训练器创建完成
+2025-07-18 17:06:47.570 | INFO     | __main__:train:382 - === 开始甄嬛角色模型训练 ===
+2025-07-18 17:06:47.570 | INFO     | __main__:train:386 - 🚀 开始模型训练...
+2025-07-18 17:17:13.179 | INFO     | __main__:train:390 - 💾 保存最终模型...
+2025-07-18 17:17:14.812 | INFO     | __main__:train:394 - === 训练完成 ===
+2025-07-18 17:17:14.814 | INFO     | __main__:train:395 - 📁 模型保存在: ../training/models/huanhuan_fast
+2025-07-18 17:17:14.814 | INFO     | __main__:main:414 - 🎉 甄嬛角色模型训练完成！
+2025-07-18 17:17:14.814 | INFO     | __main__:main:415 - 📁 接下来可以运行部署脚本: python deployment/huanhuan_deploy.py
