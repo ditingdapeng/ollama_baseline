@@ -49,120 +49,107 @@ class HuanHuanWebApp:
         """
         初始化会话状态
         """
-        if 'messages' not in st.session_state:
+        # 对话历史
+        if "messages" not in st.session_state:
             st.session_state.messages = []
         
-        if 'model_params' not in st.session_state:
-            st.session_state.model_params = {
-                'temperature': 0.7,
-                'top_p': 0.9,
-                'top_k': 40,
-                'max_tokens': 256
-            }
+        # Ollama连接状态
+        if "ollama_connected" not in st.session_state:
+            st.session_state.ollama_connected = False
         
+        # 可用模型列表
+        if "available_models" not in st.session_state:
+            st.session_state.available_models = []
+        
+        # 当前选择的模型
+        if "selected_model" not in st.session_state:
+            st.session_state.selected_model = None
+        
+        # 生成参数
+        if "temperature" not in st.session_state:
+            st.session_state.temperature = 0.7
+        if "top_p" not in st.session_state:
+            st.session_state.top_p = 0.9
+        if "top_k" not in st.session_state:
+            st.session_state.top_k = 40
+        if "max_tokens" not in st.session_state:
+            st.session_state.max_tokens = 256
+        
+        # 对话历史记录
         if 'chat_history' not in st.session_state:
             st.session_state.chat_history = []
     
     def check_ollama_connection(self) -> bool:
         """
-        检查Ollama连接
+        检查Ollama服务连接状态
         """
         try:
             response = requests.get(f"{self.ollama_host}/api/tags", timeout=5)
-            return response.status_code == 200
-        except:
-            return False
+            if response.status_code == 200:
+                st.session_state.ollama_connected = True
+                return True
+        except requests.exceptions.RequestException:
+            pass
+        
+        st.session_state.ollama_connected = False
+        return False
     
     def get_available_models(self) -> List[str]:
         """
-        获取可用模型列表
+        获取可用的模型列表
         """
+        if not self.check_ollama_connection():
+            return []
+        
         try:
-            response = requests.get(f"{self.ollama_host}/api/tags", timeout=5)
+            response = requests.get(f"{self.ollama_host}/api/tags")
             if response.status_code == 200:
                 data = response.json()
-                return [model['name'] for model in data.get('models', [])]
-            return []
-        except:
-            return []
-    
-    def chat_with_huanhuan(self, message: str, **params) -> str:
-        """
-        与甄嬛对话
-        """
-        try:
-            # 构建请求数据
-            request_data = {
-                "model": self.model_name,
-                "prompt": message,
-                "stream": False,
-                "options": {
-                    "temperature": params.get('temperature', 0.7),
-                    "top_p": params.get('top_p', 0.9),
-                    "top_k": params.get('top_k', 40),
-                    "num_predict": params.get('max_tokens', 256)
-                }
-            }
-            
-            # 发送请求
-            response = requests.post(
-                f"{self.ollama_host}/api/generate",
-                json=request_data,
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                result = response.json()
-                return result.get('response', '抱歉，臣妾暂时无法回应。')
-            else:
-                return f"请求失败，状态码: {response.status_code}"
-                
+                models = [model['name'] for model in data.get('models', [])]
+                st.session_state.available_models = models
+                return models
         except Exception as e:
-            return f"对话出错: {str(e)}"
+            st.error(f"获取模型列表失败: {e}")
+        
+        return []
     
-    def stream_chat_with_huanhuan(self, message: str, **params):
+    def stream_chat(self, messages, model):
         """
-        流式对话
+        流式对话生成
         """
-        try:
-            request_data = {
-                "model": self.model_name,
-                "prompt": message,
-                "stream": True,
-                "options": {
-                    "temperature": params.get('temperature', 0.7),
-                    "top_p": params.get('top_p', 0.9),
-                    "top_k": params.get('top_k', 40),
-                    "num_predict": params.get('max_tokens', 256)
-                }
+        url = f"{self.ollama_host}/api/chat"
+        
+        payload = {
+            "model": model,
+            "messages": messages,
+            "stream": True,
+            "options": {
+                "temperature": st.session_state.temperature,
+                "top_p": st.session_state.top_p,
+                "top_k": st.session_state.top_k
             }
+        }
+        
+        try:
+            response = requests.post(url, json=payload, stream=True, timeout=60)
+            response.raise_for_status()
             
-            response = requests.post(
-                f"{self.ollama_host}/api/generate",
-                json=request_data,
-                stream=True,
-                timeout=30
-            )
-            
-            if response.status_code == 200:
-                full_response = ""
-                for line in response.iter_lines():
-                    if line:
-                        try:
-                            data = json.loads(line.decode('utf-8'))
-                            if 'response' in data:
-                                chunk = data['response']
-                                full_response += chunk
-                                yield chunk
-                            if data.get('done', False):
-                                break
-                        except json.JSONDecodeError:
-                            continue
-            else:
-                yield f"请求失败，状态码: {response.status_code}"
-                
+            for line in response.iter_lines():
+                if line:
+                    try:
+                        data = json.loads(line.decode('utf-8'))
+                        if 'message' in data and 'content' in data['message']:
+                            yield data['message']['content']
+                        
+                        if data.get('done', False):
+                            break
+                    except json.JSONDecodeError:
+                        continue
+                        
+        except requests.exceptions.RequestException as e:
+            yield f"连接错误: {e}"
         except Exception as e:
-            yield f"对话出错: {str(e)}"
+            yield f"未知错误: {e}"
     
     def render_sidebar(self):
         """
@@ -195,6 +182,7 @@ class HuanHuanWebApp:
                     available_models,
                     index=default_index
                 )
+                st.session_state.selected_model = selected_model
                 self.model_name = selected_model
             else:
                 st.warning("未找到可用模型")
@@ -205,38 +193,38 @@ class HuanHuanWebApp:
             # 参数调节
             st.subheader("🎛️ 生成参数")
             
-            st.session_state.model_params['temperature'] = st.slider(
+            st.session_state.temperature = st.slider(
                 "Temperature (创造性)",
                 min_value=0.1,
                 max_value=2.0,
-                value=st.session_state.model_params['temperature'],
+                value=st.session_state.temperature,
                 step=0.1,
                 help="控制回答的随机性，值越高越有创造性"
             )
             
-            st.session_state.model_params['top_p'] = st.slider(
+            st.session_state.top_p = st.slider(
                 "Top P (多样性)",
                 min_value=0.1,
                 max_value=1.0,
-                value=st.session_state.model_params['top_p'],
+                value=st.session_state.top_p,
                 step=0.1,
                 help="控制词汇选择的多样性"
             )
             
-            st.session_state.model_params['top_k'] = st.slider(
+            st.session_state.top_k = st.slider(
                 "Top K (词汇范围)",
                 min_value=1,
                 max_value=100,
-                value=st.session_state.model_params['top_k'],
+                value=st.session_state.top_k,
                 step=1,
                 help="限制每步选择的词汇数量"
             )
             
-            st.session_state.model_params['max_tokens'] = st.slider(
+            st.session_state.max_tokens = st.slider(
                 "Max Tokens (回答长度)",
                 min_value=50,
                 max_value=500,
-                value=st.session_state.model_params['max_tokens'],
+                value=st.session_state.max_tokens,
                 step=10,
                 help="控制回答的最大长度"
             )
@@ -246,16 +234,25 @@ class HuanHuanWebApp:
             # 功能按钮
             st.subheader("🛠️ 功能")
             
-            if st.button("🗑️ 清空对话", use_container_width=True):
-                st.session_state.messages = []
-                st.session_state.chat_history = []
-                st.rerun()
+            col1, col2, col3 = st.columns(3)
             
-            if st.button("💾 保存对话", use_container_width=True):
-                self.save_chat_history()
+            with col1:
+                if st.button("🗑️ 清空对话", use_container_width=True):
+                    st.session_state.messages = []
+                    st.session_state.chat_history = []
+                    st.rerun()
             
-            if st.button("📁 加载对话", use_container_width=True):
-                self.load_chat_history()
+            with col2:
+                if st.button("💾 保存对话", use_container_width=True):
+                    if st.session_state.chat_history:
+                        self.save_chat_history()
+                        st.success("对话已保存！")
+                    else:
+                        st.warning("没有对话内容可保存")
+            
+            with col3:
+                if st.button("📂 加载对话", use_container_width=True):
+                    self.load_chat_history()
     
     def render_main_content(self):
         """
@@ -339,7 +336,15 @@ class HuanHuanWebApp:
                     response_placeholder = st.empty()
                     full_response = ""
                     
-                    for chunk in self.stream_chat_with_huanhuan(prompt, **st.session_state.model_params):
+                    # 构建消息历史
+                    messages = []
+                    for msg in st.session_state.messages:
+                        messages.append({
+                            "role": msg["role"],
+                            "content": msg["content"]
+                        })
+                    
+                    for chunk in self.stream_chat(messages, st.session_state.selected_model):
                         full_response += chunk
                         response_placeholder.markdown(full_response + "▌")
                     
@@ -353,25 +358,46 @@ class HuanHuanWebApp:
                 "timestamp": datetime.now().isoformat(),
                 "user": prompt,
                 "assistant": full_response,
-                "params": st.session_state.model_params.copy()
+                "params": {
+                    "temperature": st.session_state.temperature,
+                    "top_p": st.session_state.top_p,
+                    "top_k": st.session_state.top_k,
+                    "max_tokens": st.session_state.max_tokens
+                }
             })
     
     def save_chat_history(self):
         """
         保存对话历史
         """
+        if not st.session_state.chat_history:
+            return
+        
+        # 创建保存目录
+        save_dir = Path("application/chat_history")
+        save_dir.mkdir(parents=True, exist_ok=True)
+        
+        # 生成文件名
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"huanhuan_chat_{timestamp}.json"
+        filepath = save_dir / filename
+        
+        # 保存数据
+        save_data = {
+            "timestamp": timestamp,
+            "chat_history": st.session_state.chat_history,
+            "model_params": {
+                "selected_model": st.session_state.selected_model,
+                "temperature": st.session_state.temperature,
+                "top_p": st.session_state.top_p,
+                "top_k": st.session_state.top_k,
+                "max_tokens": st.session_state.max_tokens
+            }
+        }
+        
         try:
-            history_dir = Path(__file__).parent / "chat_history"
-            history_dir.mkdir(exist_ok=True)
-            
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = history_dir / f"huanhuan_chat_{timestamp}.json"
-            
-            with open(filename, 'w', encoding='utf-8') as f:
-                json.dump(st.session_state.chat_history, f, ensure_ascii=False, indent=2)
-            
-            st.success(f"对话历史已保存: {filename}")
-            
+            with open(filepath, 'w', encoding='utf-8') as f:
+                json.dump(save_data, f, ensure_ascii=False, indent=2)
         except Exception as e:
             st.error(f"保存失败: {e}")
     
@@ -379,36 +405,66 @@ class HuanHuanWebApp:
         """
         加载对话历史
         """
-        try:
-            history_dir = Path(__file__).parent / "chat_history"
-            if not history_dir.exists():
-                st.warning("没有找到历史记录")
-                return
-            
-            history_files = list(history_dir.glob("huanhuan_chat_*.json"))
-            if not history_files:
-                st.warning("没有找到历史记录文件")
-                return
-            
-            # 选择最新的文件
-            latest_file = max(history_files, key=lambda x: x.stat().st_mtime)
-            
-            with open(latest_file, 'r', encoding='utf-8') as f:
-                loaded_history = json.load(f)
-            
-            st.session_state.chat_history = loaded_history
-            
-            # 重建消息列表
-            st.session_state.messages = []
-            for item in loaded_history:
-                st.session_state.messages.append({"role": "user", "content": item["user"]})
-                st.session_state.messages.append({"role": "assistant", "content": item["assistant"]})
-            
-            st.success(f"对话历史已加载: {latest_file.name}")
-            st.rerun()
-            
-        except Exception as e:
-            st.error(f"加载失败: {e}")
+        save_dir = Path("application/chat_history")
+        if not save_dir.exists():
+            st.warning("没有找到历史对话文件")
+            return
+        
+        # 获取所有历史文件
+        history_files = list(save_dir.glob("*.json"))
+        if not history_files:
+            st.warning("没有找到历史对话文件")
+            return
+        
+        # 选择文件
+        file_options = {f.name: f for f in sorted(history_files, reverse=True)}
+        selected_file = st.selectbox(
+            "选择要加载的对话:",
+            options=list(file_options.keys())
+        )
+        
+        if st.button("加载选中的对话"):
+            try:
+                with open(file_options[selected_file], 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                
+                st.session_state.chat_history = data.get('chat_history', [])
+                st.session_state.messages = []
+                
+                # 重建messages格式
+                for chat in st.session_state.chat_history:
+                    st.session_state.messages.append({"role": "user", "content": chat["user"]})
+                    st.session_state.messages.append({"role": "assistant", "content": chat["assistant"]})
+                
+                # 加载模型参数
+                if 'model_params' in data:
+                    params = data['model_params']
+                    if 'selected_model' in params:
+                        st.session_state.selected_model = params['selected_model']
+                    if 'temperature' in params:
+                        st.session_state.temperature = params['temperature']
+                    if 'top_p' in params:
+                        st.session_state.top_p = params['top_p']
+                    if 'top_k' in params:
+                        st.session_state.top_k = params['top_k']
+                    if 'max_tokens' in params:
+                        st.session_state.max_tokens = params['max_tokens']
+                
+                st.success(f"已加载对话: {selected_file}")
+                st.rerun()
+            except Exception as e:
+                st.error(f"加载失败: {e}")
+    
+    def get_history_files(self):
+        """
+        获取历史文件列表
+        """
+        save_dir = Path("application/chat_history")
+        if not save_dir.exists():
+            return []
+        
+        history_files = list(save_dir.glob("*.json"))
+        return sorted([f.name for f in history_files], reverse=True)
     
     def render_footer(self):
         """
@@ -432,7 +488,7 @@ class HuanHuanWebApp:
     
     def run(self):
         """
-        运行Web应用
+        运行应用主方法
         """
         # 渲染侧边栏
         self.render_sidebar()
