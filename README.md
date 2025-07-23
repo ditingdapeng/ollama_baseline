@@ -66,15 +66,38 @@ ollama_baseline/
 pip install -r requirements.txt
 ```
 
-### 方式二：使用 uv 工具安装（推荐）
+### 方式二：使用 conda 环境（推荐）
 
 ```bash
-# 安装 uv 工具（如果尚未安装）
-pip install uv
+# 1. 创建conda环境（指定Python版本）
+conda create -n huanhuan python=3.13
 
-# 使用 uv 安装依赖
-uv pip install -r requirements.txt
+# 2. 激活环境
+conda activate huanhuan
+
+# 3. 安装依赖
+pip install -r requirements.txt
+# 或者优先使用conda安装
+conda install pytorch transformers -c pytorch -c huggingface
+pip install -r requirements.txt
+
+# 4. 退出环境
+conda deactivate
 ```
 
-> **注意**: uv 是一个更快的 Python 包管理工具，安装速度比传统 pip 快 10-100 倍。
+### 方式三：使用 uv
+
+```bash
+# 1. 安装uv（如果未安装）
+pip install uv
+
+# 2. 创建虚拟环境
+uv venv huanhuan_env
+
+# 3. 激活环境
+source huanhuan_env/bin/activate  # macOS/Linux
+
+# 4. 使用uv安装依赖（比pip快10-100倍）
+uv pip install -r requirements.txt
+```
 

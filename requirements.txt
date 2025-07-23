@@ -1,58 +1,26 @@
-# 基础依赖 - Python 3.13兼容版本
-torch==2.7.1
-transformers==4.53.1
+# 核心机器学习依赖 - training模块
+torch>=2.0.0,<3.0.0
+transformers>=4.30.0,<5.0.0
 peft>=0.4.0,<0.15.0
-datasets>=2.12.0,<3.0.0
+tokenizers>=0.13.0,<1.0.0
+safetensors>=0.3.0,<1.0.0
 
-# 模型相关
-sentencepiece>=0.1.99,<0.3.0
-protobuf==6.31.1
-numpy>=1.21.0,<2.0.0
-scipy>=1.7.0,<2.0.0
-scikit-learn>=1.0.0,<2.0.0
-tokenizers==0.21.2
-safetensors==0.5.3
-
-# 数据处理
-pandas>=1.3.0,<3.0.0
-openpyxl>=3.0.9,<4.0.0
-requests==2.32.3
-tqdm==4.67.1
-jieba>=0.42.1,<1.0.0
-
-# 配置和日志
-PyYAML==6.0.2
+# 数据处理 - dataScripts模块
+requests>=2.25.0,<3.0.0
+tqdm>=4.60.0,<5.0.0
 loguru>=0.6.0,<1.0.0
-# wandb>=0.15.0,<0.18.0  # 暂时注释，可能有兼容性问题
-tensorboard>=2.10.0,<3.0.0
 
-# Web应用
-streamlit==1.46.1
-fastapi>=0.100.0,<1.0.0
-uvicorn==0.35.0
-gradio>=3.35.0,<5.0.0
+# 配置文件处理 - training模块
+PyYAML>=6.0,<7.0
 
-# API和网络
-httpx>=0.24.0,<1.0.0
-aiohttp>=3.8.0,<4.0.0
-websockets>=11.0,<13.0
+# Web应用 - application模块
+streamlit>=1.20.0,<2.0.0
 
-# 工具库
-click>=8.0.0,<9.0.0
-rich==13.9.4
-psutil==7.0.0
-huggingface-hub>=0.15.0,<1.0.0
-
-# Ollama客户端
-ollama>=0.1.0,<1.0.0
-
-# MCP服务器依赖
+# MCP服务器 - mcp_server模块
 mcp>=1.0.0
 
-# 可选GPU支持 (根据系统选择)
-# torch-audio  # 如果需要音频处理
-# xformers     # 如果需要内存优化
+# llama.cpp转换工具 - convert_lora_to_gguf.py
+gguf>=0.1.0
 
-# 其他依赖
-python-dateutil==2.9.0.post0
-typing-extensions==4.14.0
+# 系统监控 - training模块
+psutil>=5.8.0,<8.0.0
