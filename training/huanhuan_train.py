@@ -250,31 +250,24 @@ class HuanHuanTrainer:
         """
         准备训练数据集
         """
-        data_file = self.config['data']['train_file']
-        
-        if not os.path.exists(data_file):
-            logger.error(f"训练数据文件不存在: {data_file}")
-            logger.info("请先运行: python training/huanhuan_data_prepare.py")
-            raise FileNotFoundError(f"训练数据文件不存在: {data_file}")
-        
-        logger.info(f"加载训练数据: {data_file}")
-        
-        # 创建数据集
-        dataset = HuanHuanDataset(
-            data_file=data_file,
+        # 分别加载三个文件
+        train_dataset = HuanHuanDataset(
+            data_file=self.config['data']['train_file'],
             tokenizer=self.tokenizer,
             max_length=self.config['model'].get('max_length', 2048)
         )
         
-        # 分割数据集
-        total_size = len(dataset)
-        val_size = int(total_size * 0.1)  # 默认10%验证集
-        test_size = int(total_size * 0.1)  # 默认10%测试集
-        train_size = total_size - val_size - test_size
+        val_dataset = HuanHuanDataset(
+            data_file=self.config['data']['validation_file'],
+            tokenizer=self.tokenizer,
+            max_length=self.config['model'].get('max_length', 2048)
+        )
         
-        train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(
-            dataset, [train_size, val_size, test_size],
-            generator=torch.Generator().manual_seed(self.config['system']['seed'])
+        # 测试集在训练时不用，但要保留用于最终评估
+        test_dataset = HuanHuanDataset(
+            data_file=self.config['data']['test_file'],
+            tokenizer=self.tokenizer,
+            max_length=self.config['model'].get('max_length', 2048)
         )
         
         logger.info(f"训练集: {len(train_dataset)} 样本")
@@ -282,7 +275,6 @@ class HuanHuanTrainer:
         logger.info(f"测试集: {len(test_dataset)} 样本")
         
         return train_dataset, val_dataset, test_dataset
-    
     def setup_training_arguments(self):
         """
         设置训练参数并创建Trainer
