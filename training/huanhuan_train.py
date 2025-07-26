@@ -404,7 +404,7 @@ def main():
         train_result = trainer.train()
         
         logger.info("🎉 甄嬛角色模型训练完成！")
-        logger.info("📁 接下来可以运行部署脚本: python deployment/huanhuan_deploy.py")
+        logger.info("📁 接下来可以使用 Ollama 部署模型: ollama create huanhuan -f deployment/Modelfile.huanhuan")
         
     except Exception as e:
         logger.error(f"训练过程出错: {e}")
